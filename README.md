@@ -5,3 +5,4 @@ In Version 1, accomplished target is:
 - Inclusion of leaflet map
 - Data request from the source
 - Saving requested data into Database for later usage
+- Create logging activity to allow progress tracking
