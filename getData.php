@@ -1,11 +1,31 @@
 <?php 
 
-// This is just an example of reading server side data and sending it to the client.
-// It reads a json formatted text file and outputs it.
+$db_host = "host";
+$db_name = "db";
+$db_user = "user";
+$db_password = "pass";
+$dsn = "mysql:host=$db_host;dbname=$db_name;charset=utf8";
+$db = new PDO($dsn, $db_user, $db_password);
+$sql = "SELECT `id`, extract(hour from `time`) as Hourly, avg(`pm25`) as PM25 FROM `devices_data` WHERE `id` = :id GROUP BY `id`, extract(hour from `time`)";
+$responseT = $db->prepare($sql);
+$id = $_POST['id'];
+$responseT->execute(array('id'=>$id));
 
-$string = file_get_contents("sampleData.json");
-echo $string;
-
-// Instead you can query your database and parse into JSON etc etc
+//Creating json table that is ready to be used by Google Charts
+$table = array();
+$table['cols'] = array (
+  array('id' => "", 'label' => "Time", 'pattern' => "", 'type' => 'string'),
+  array('id' => "", 'label' => "PM 2.5", 'pattern' => "", 'type' => 'number')
+);
+$rows = array();
+while($nt =  $responseT->fetch(PDO::FETCH_ASSOC)) {
+  $temp = array();
+  $temp[] = array('v' => $nt['Hourly'], 'f' => NULL);
+  $temp[] = array('v' => $nt['PM25'], 'f' => NULL);
+  $rows[] = array('c' => $temp);
+}
+$table['rows'] = $rows;
+$jsonTable = json_encode($table);
+echo $jsonTable;
 
 ?>
