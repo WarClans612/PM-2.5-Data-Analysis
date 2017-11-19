@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PM 2.5 資料</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!Stylesheet for the color and design of the page>
+<link rel="stylesheet" type="text/css" href="main.css">
+<!Stylesheet for Leaflet API>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"
+  integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ=="
+  crossorigin=""/>
+<! Javascript API for Leaflet>
+<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"
+  integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log=="
+  crossorigin=""></script>
+<!Javascript for Google API JQuery>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<!Javascript for Google Charts>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body>
+
+<!Div container for Leaflet Map>
+<div id="mapid"></div>
+      
+<script>
+//Handling map layout and popup configuration
+var mymap = L.map('mapid').setView([24.786586, 120.999848], 17);
+L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+  attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+  maxZoom: 18,
+  id: 'mapbox.streets',
+  accessToken: 'pk.eyJ1Ijoid2FyY2xhbnMiLCJhIjoiY2o5NDY0OHBzMmxvYjMzbnIwcGxwNTFsYSJ9.iHw0zU1WyjnHpmGabf8Jjw'
+}).addTo(mymap);
+
+//Set marker and popup content
+var customOptions = {
+  'minWidth': 500, 
+  'className': 'customMapOptions'
+};
+//Data request to get all available coordinate
+jQuery.post("getCoordinate.php", function(jsonData, status) {
+  var devices_info = jQuery.parseJSON(jsonData);
+  
+  var marker = L.marker([24.786586, 120.999848]).addTo(mymap);
+  marker._myId = "someID";
+  marker.bindPopup("<div id='jsonChart'>", customOptions);
+  marker.on("popupopen", function(e) {
+    drawChart(e.popup._source._myId);
+  });
+});
+
+// Load the Visualization API
+google.charts.load('current', {'packages':['corechart']});
+
+// Set a callback to run when the Google Visualization API is loaded.
+//google.charts.setOnLoadCallback(drawChart);
+
+function drawChart(popupID) {
+  jQuery.post("getData.php", {id: popupID}, function(jsonData, status) {
+    // Create our data table out of JSON data loaded from server.
+    var data = new google.visualization.DataTable(jsonData);
+
+    //Instantiate and draw our chart, passing in some options.
+    var chart = new google.visualization.AreaChart(document.getElementById('jsonChart'));
+    var options = {
+      'title': 'PM 2.5',
+      'chartArea': {'top': 35, 'right': 30, 'bottom': 35, 'left': 30, 'width': '100%', 'height': '100%'},
+      'legend': 'none',
+      'crosshair': {trigger: "both"},
+      'animation': {
+        'duration': 500,
+        'easing': "out"
+      },
+      'hAxis': {'title': 'Time'},
+      'vAxis': {'title': 'PM 2.5'}
+    };
+    chart.draw(data, options);
+  });
+}
+
+</script>
+
+</body>
+</html>
