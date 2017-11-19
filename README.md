@@ -12,3 +12,11 @@ In version 2, accomplished target are:
 - Inclusion of Google Charts for developer
 - Php data to handle simple transaction with client Javascript
 - Sample Json file for test run
+
+In Version 3, accomplished target are:
+- Improved Leaflet popup and marker options
+- Improved getData.php to prevent SQL Injection
+- Improved getData.php to consider myID
+- Improved getData.php to search appropriate data from Database
+- Using Google Charts to develop charts from Json data
+- Added getCoordinate.php to collect existing coordinate for marker in Leaflet
