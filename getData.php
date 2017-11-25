@@ -6,7 +6,7 @@ $db_user = "user";
 $db_password = "pass";
 $dsn = "mysql:host=$db_host;dbname=$db_name;charset=utf8";
 $db = new PDO($dsn, $db_user, $db_password);
-$sql = "SELECT `id`, extract(hour from `time`) as Hourly, avg(`pm25`) as PM25 FROM `devices_data` WHERE `id` = :id GROUP BY `id`, extract(hour from `time`)";
+$sql = "SELECT `id`, extract(hour from `time`) as Hourly, avg(`pm25`) as PM25 FROM `devices_data` WHERE `id` = :id AND `time` > DATE_SUB( NOW(), INTERVAL 1 DAY) GROUP BY `id`, extract(hour from `time`) ORDER BY ( Hourly + 24 - HOUR(NOW())) % 24";
 $responseT = $db->prepare($sql);
 $id = $_POST['id'];
 $responseT->execute(array('id'=>$id));
