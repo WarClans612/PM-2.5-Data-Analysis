@@ -40,16 +40,22 @@ var customOptions = {
   'minWidth': 500, 
   'className': 'customMapOptions'
 };
+var markerPoint = [];
 //Data request to get all available coordinate
 jQuery.post("getCoordinate.php", function(jsonData, status) {
   var devices_info = jQuery.parseJSON(jsonData);
   
-  var marker = L.marker([24.786586, 120.999848]).addTo(mymap);
-  marker._myId = "someID";
-  marker.bindPopup("<div id='jsonChart'>", customOptions);
-  marker.on("popupopen", function(e) {
-    drawChart(e.popup._source._myId);
-  });
+  for(i = 0; i < devices_info.length; ++i) {
+    var temp = {
+      'id': devices_info[i].id,
+      'name': devices_info[i].name,
+      'marker': L.marker([devices_info[i].lat, devices_info[i].lon]).addTo(mymap)
+    }
+    temp.marker._myId = devices_info[i].id;
+    temp.marker.bindPopup("<div id='jsonChart'>", customOptions).on("popupopen", function(e) {
+      drawChart(e.popup._source._myId);
+    })
+  }
 });
 
 // Load the Visualization API
