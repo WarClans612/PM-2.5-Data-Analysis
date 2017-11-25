@@ -18,5 +18,6 @@ In Version 3, accomplished target are:
 - Improved getData.php to prevent SQL Injection
 - Improved getData.php to consider myID
 - Improved getData.php to search appropriate data from Database
+- Improved getData.php to calculate average value of PM 2.5 hourly
 - Using Google Charts to develop charts from Json data
 - Added getCoordinate.php to collect existing coordinate for marker in Leaflet
