@@ -70,10 +70,10 @@ function drawChart(popupID) {
     var data = new google.visualization.DataTable(jsonData);
 
     //Instantiate and draw our chart, passing in some options.
-    var chart = new google.visualization.AreaChart(document.getElementById('jsonChart'));
+    var chart = new google.visualization.AreaChart(document.getElementById('jsonChart' + popupID));
     var options = {
       'title': 'PM 2.5',
-      'chartArea': {'top': 35, 'right': 30, 'bottom': 35, 'left': 30, 'width': '100%', 'height': '100%'},
+      'chartArea': {'top': 35, 'right': 30, 'bottom': 45, 'left': 45, 'width': '100%', 'height': '100%'},
       'legend': 'none',
       'crosshair': {trigger: "both"},
       'animation': {
@@ -81,9 +81,16 @@ function drawChart(popupID) {
         'easing': "out"
       },
       'hAxis': {'title': 'Time'},
-      'vAxis': {'title': 'PM 2.5'}
+      'vAxis': {
+	    'title': 'PM 2.5',
+		'viewWindowMode': 'explicit',
+		'viewWindow': {'min': 0}
+	  }
     };
     chart.draw(data, options);
+	
+	//For testing purpose
+	//$("#jsonChart" + popupID).text(jsonData);
   });
 }
 
