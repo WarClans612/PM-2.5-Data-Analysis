@@ -23,4 +23,3 @@ In Version 3, accomplished target are:
 - Added getCoordinate.php to collect existing coordinate for marker in Leaflet
 
 In Version 4, accomplished target are:
-- 
