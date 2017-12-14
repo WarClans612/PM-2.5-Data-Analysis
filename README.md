@@ -21,3 +21,6 @@ In Version 3, accomplished target are:
 - Improved getData.php to calculate average value of PM 2.5 hourly
 - Using Google Charts to develop charts from Json data
 - Added getCoordinate.php to collect existing coordinate for marker in Leaflet
+
+In Version 4, accomplished target are:
+- 
