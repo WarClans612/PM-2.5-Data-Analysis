@@ -19,12 +19,13 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <!Javascript for Google Charts>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
 </head>
 <body>
 
 <!Div container for Leaflet Map>
 <div id="mapid"></div>
-      
+
 <script>
 //Handling map layout and popup configuration
 var mymap = L.map('mapid').setView([24.786586, 120.999848], 17);
@@ -46,15 +47,40 @@ jQuery.post("getCoordinate.php", function(jsonData, status) {
   var devices_info = jQuery.parseJSON(jsonData);
   
   for(i = 0; i < devices_info.length; ++i) {
+    var OuterColor;
+    switch(devices_info[i].source) {
+      case("Edimax"): OuterColor = "red"; break;
+	  case("Wang"): OuterColor = "blue"; break;
+	  default: OuterColor = "black"
+	}
     var temp = {
       'id': devices_info[i].id,
       'name': devices_info[i].name,
-      'marker': L.marker([devices_info[i].lat, devices_info[i].lon]).addTo(mymap)
+	  'marker': L.circleMarker([devices_info[i].lat, devices_info[i].lon], {
+        color: OuterColor,
+        fillColor: '#f03',
+        fillOpacity: 0.5
+      }).addTo(mymap)
     }
     temp.marker._myId = devices_info[i].id;
-    temp.marker.bindPopup("<div id='jsonChart'>", customOptions).on("popupopen", function(e) {
-      drawChart(e.popup._source._myId);
-    })
+    if (devices_info[i].source == "Edimax") {
+      temp.marker.bindPopup("<div><h2>" + devices_info[i].name + "</h2></div><div id='EdimaxChart_" + devices_info[i].id + "'>", customOptions);
+	  temp.marker.on("popupopen", function(e) {
+        drawEdimaxChart(e.popup._source._myId);
+      });
+	  temp.marker.on("popupclose", function(e) {
+	    jQuery("#EdimaxChart_" + e.popup._source._myId).empty();
+	  });
+    }
+    else if (devices_info[i].source == "Wang") {
+      temp.marker.bindPopup("<div><h2>" + devices_info[i].name + "</h2></div><div id='WangChart_" + devices_info[i].id + "'>", customOptions);
+	  temp.marker.on("popupopen", function(e) {
+        drawWangChart(e.popup._source._myId);
+      });
+	  temp.marker.on("popupclose", function(e) {
+	    jQuery("#WangChart_" + e.popup._source._myId).empty();
+	  });
+    }
   }
 });
 
@@ -64,36 +90,77 @@ google.charts.load('current', {'packages':['corechart']});
 // Set a callback to run when the Google Visualization API is loaded.
 //google.charts.setOnLoadCallback(drawChart);
 
-function drawChart(popupID) {
-  jQuery.post("getData.php", {id: popupID}, function(jsonData, status) {
-    // Create our data table out of JSON data loaded from server.
+function drawEdimaxChart(popupID) {
+  jQuery.post("getEdimax_PM2.5.php", {id: popupID}, function(jsonData, status) {
+
+    //Using google Chart to present the data
+	// Create our data table out of JSON data loaded from server.
     var data = new google.visualization.DataTable(jsonData);
 
     //Instantiate and draw our chart, passing in some options.
-    var chart = new google.visualization.AreaChart(document.getElementById('jsonChart' + popupID));
+    var chart = new google.visualization.AreaChart(document.getElementById("EdimaxChart_" + popupID));
     var options = {
       'title': 'PM 2.5',
-      'chartArea': {'top': 35, 'right': 30, 'bottom': 45, 'left': 45, 'width': '100%', 'height': '100%'},
+      'titleTextStyle': {
+        'fontName': 'Times New Roman',
+        'fontSize': 14
+      },
+      'chartArea': {'top': 30, 'right': 15, 'bottom': 45, 'left': 45, 'width': '100%', 'height': '100%'},
       'legend': 'none',
       'crosshair': {trigger: "both"},
       'animation': {
         'duration': 500,
         'easing': "out"
       },
-      'hAxis': {'title': 'Time'},
+      'hAxis': {'title': 'Hour'},
       'vAxis': {
-	    'title': 'PM 2.5',
-		'viewWindowMode': 'explicit',
-		'viewWindow': {'min': 0}
-	  }
+        'title': 'PM 2.5',
+        'viewWindowMode': 'explicit',
+        'viewWindow': {'min': 0}
+      }
     };
     chart.draw(data, options);
-	
-	//For testing purpose
-	//$("#jsonChart" + popupID).text(jsonData);
+
+    //For testing purpose
+    //$("#jsonChart" + popupID).text(jsonData);
   });
 }
+  
+function drawWangChart(popupID) {
+  jQuery.post("getWang_PM2.5.php", {id: popupID}, function(jsonData, status) {
 
+    //Using google Chart to present the data
+	// Create our data table out of JSON data loaded from server.
+    var data = new google.visualization.DataTable(jsonData);
+
+    //Instantiate and draw our chart, passing in some options.
+    var chart = new google.visualization.AreaChart(document.getElementById("WangChart_" + popupID));
+    var options = {
+      'title': 'PM 2.5',
+      'titleTextStyle': {
+        'fontName': 'Times New Roman',
+        'fontSize': 14
+      },
+      'chartArea': {'top': 30, 'right': 15, 'bottom': 45, 'left': 45, 'width': '100%', 'height': '100%'},
+      'legend': 'none',
+      'crosshair': {trigger: "both"},
+      'animation': {
+        'duration': 500,
+        'easing': "out"
+      },
+      'hAxis': {'title': 'Hour'},
+      'vAxis': {
+        'title': 'PM 2.5',
+        'viewWindowMode': 'explicit',
+        'viewWindow': {'min': 0}
+      }
+    };
+    chart.draw(data, options);
+
+    //For testing purpose
+    //$("#jsonChart" + popupID).text(jsonData);
+  });
+}
 </script>
 
 </body>
