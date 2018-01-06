@@ -1,9 +1,33 @@
-html, body {
+html{
     height: 100%;
 }
 
 #mapid { 
-    margin: 0 auto;
-    width: 80%;
-    height: 50em;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+  margin: auto;
+  width: 960px;
+}
+
+text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.area {
+  fill: url(#temperature-gradient);
+  stroke-width: 05px;
 }
