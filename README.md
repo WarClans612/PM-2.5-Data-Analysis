@@ -21,3 +21,14 @@ In Version 3, accomplished target are:
 - Improved getData.php to calculate average value of PM 2.5 hourly
 - Using Google Charts to develop charts from Json data
 - Added getCoordinate.php to collect existing coordinate for marker in Leaflet
+
+In Version 4, accomplished target are:
+- Changed leaflet event sniffer for popupopen and popupclose
+- Managing the data for 2 table at once differentiated by different color
+- Different data table managed by different php file
+
+In version 5, accomplished target are:
+- Simplified drawChart function into one
+- Using d3.js to replace google Chart
+- Change for getData php file to compensate with the different graph method
+- Updated main.css to improve graph styling
