@@ -1,9 +1,9 @@
 <?php 
 
-$db_host = "172.16.1.200";
-$db_name = "phua";
-$db_user = "phua";
-$db_password = "wilbert612";
+$db_host = "host";
+$db_name = "name";
+$db_user = "user";
+$db_password = "pass";
 $dsn = "mysql:host=$db_host;dbname=$db_name;charset=utf8";
 $db = new PDO($dsn, $db_user, $db_password);
 $sql = "SELECT `id`, extract(hour from `time`) as Hourly, avg(`pm25`) as PM25
