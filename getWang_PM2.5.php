@@ -23,7 +23,7 @@ while($nt =  $responseT->fetch(PDO::FETCH_ASSOC)) {
 
 $table = array();
 //Creating json table that is ready to be used by Google Charts
-$table['cols'] = array (
+/*$table['cols'] = array (
   array('id' => "", 'label' => "Time", 'pattern' => "", 'type' => 'string'),
   array('id' => "", 'label' => "PM 2.5", 'pattern' => "", 'type' => 'number')
 );
@@ -35,7 +35,13 @@ for($i = 0; $i < $device_data_length; ++$i) {
   $temp[] = array('v' => $device_data[$wanted], 'f' => NULL);
   $rows[] = array('c' => $temp);
 }
-$table['rows'] = $rows;
+$table['rows'] = $rows;*/
+
+//Preparing json table for d3.js
+for($i = 0; $i < $device_data_length; ++$i) {
+  $wanted = ($i + (int)date('G')) % $device_data_length;
+  $table[] = array("Time" => $wanted, "PM25" => $device_data[$wanted]);
+}
 $jsonTable = json_encode($table, JSON_UNESCAPED_UNICODE);
 echo $jsonTable;
 
