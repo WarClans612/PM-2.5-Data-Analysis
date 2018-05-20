@@ -32,3 +32,9 @@ In version 5, accomplished target are:
 - Using d3.js to replace google Chart
 - Change for getData php file to compensate with the different graph method
 - Updated main.css to improve graph styling
+
+In version 6, accomplished target are:
+- Changing TAB into 4 spaces
+- Splitting data fetch for each respectable source
+- Each source requires each entry point to start data catching
+- Improved PHP to cope with more source
