@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PM 2.5 資料</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!Stylesheet for the color and design of the page>
+<link rel="stylesheet" type="text/css" href="main.css">
+<!Stylesheet for Leaflet API>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"
+  integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ=="
+  crossorigin=""/>
+<! Javascript API for Leaflet>
+<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"
+  integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log=="
+  crossorigin=""></script>
+<!Javascript for Google API JQuery>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<!Javascript for Google Charts>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
+</head>
+<body>
+
+<!Div container for Leaflet Map>
+<div id="mapid"></div>
+
+<script>
+//Handling map layout and popup configuration
+var mymap = L.map('mapid').setView([24.786586, 120.999848], 17);
+L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+  attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+  maxZoom: 18,
+  id: 'mapbox.streets',
+  accessToken: 'pk.eyJ1Ijoid2FyY2xhbnMiLCJhIjoiY2o5NDY0OHBzMmxvYjMzbnIwcGxwNTFsYSJ9.iHw0zU1WyjnHpmGabf8Jjw'
+}).addTo(mymap);
+
+//Set marker and popup content
+var customOptions = {
+  'minWidth': 500, 
+  'className': 'customMapOptions'
+};
+var markerPoint = [];
+//Data request to get all available coordinate
+jQuery.post("getCoordinate.php", function(jsonData, status) {
+  var devices_info = jQuery.parseJSON(jsonData);
+  
+  for(i = 0; i < devices_info.length; ++i) {
+    var OuterColor;
+    switch(devices_info[i].source) {
+      case("Edimax"): OuterColor = "red"; break;
+	  case("Wang"): OuterColor = "blue"; break;
+	  default: OuterColor = "black"
+	}
+    var temp = {
+      'id': devices_info[i].id,
+      'name': devices_info[i].name,
+	  'marker': L.circleMarker([devices_info[i].lat, devices_info[i].lon], {
+        color: OuterColor,
+        fillColor: '#f03',
+        fillOpacity: 0.5
+      }).addTo(mymap)
+    }
+    temp.marker._myId = devices_info[i].id;
+    if (devices_info[i].source == "Edimax") {
+      temp.marker.bindPopup("<div><h2>" + devices_info[i].name + "</h2></div><div id='Chart_" + devices_info[i].id + "'>", customOptions);
+	  temp.marker.on("popupopen", function(e) {
+        drawChart("getEdimax_PM2.5.php", e.popup._source._myId);
+      });
+	  temp.marker.on("popupclose", function(e) {
+	    jQuery("#Chart_" + e.popup._source._myId).empty();
+	  });
+    }
+    else if (devices_info[i].source == "Wang") {
+      temp.marker.bindPopup("<div><h2>" + devices_info[i].name + "</h2></div><div id='Chart_" + devices_info[i].id + "'>", customOptions);
+	  temp.marker.on("popupopen", function(e) {
+        drawChart("getWang_PM2.5.php", e.popup._source._myId);
+      });
+	  temp.marker.on("popupclose", function(e) {
+	    jQuery("#Chart_" + e.popup._source._myId).empty();
+	  });
+    }
+  }
+});
+
+// Load the Visualization API
+google.charts.load('current', {'packages':['corechart']});
+
+// Set a callback to run when the Google Visualization API is loaded.
+//google.charts.setOnLoadCallback(drawChart);
+
+function drawChart(source, popupID) {
+  jQuery.post(source, {id: popupID}, function(jsonData, status) {
+  //Variable for initialization
+    var colors = [ 'rgb(255,0,0)', 'rgb(255,255,0)', 'rgb(0,255,0)' ];
+    var margin = {top: 15, right: 15, bottom: 30, left: 30},
+    width = 500 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+	//Scaling target and equation
+    var x = d3.scale.ordinal().rangeRoundBands([0, width]);
+    var y = d3.scale.linear().range([height, 0]);
+    var xAxis = d3.svg.axis()
+      .scale(x)
+      .orient("bottom");
+    var yAxis = d3.svg.axis()
+      .scale(y)
+      .orient("left");
+    
+	//Initialization of graph canvas
+    var svg = d3.select("#Chart_" + popupID).append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", 
+        "translate(" + margin.left + "," + margin.top + ")");
+	
+	//Initialization of graph gradient
+	var grad = svg.append('defs')
+      .append('linearGradient')
+      .attr('id', 'grad')
+      .attr('x1', '0%')
+      .attr('x2', '0%')
+      .attr('y1', '0%')
+      .attr('y2', '100%');
+    
+    grad.selectAll('stop')
+      .data(colors)
+      .enter()
+      .append('stop')
+      .style('stop-color', function(d){ return d; })
+      .attr('offset', function(d,i){
+        return 100 * (i / (colors.length - 1)) + '%';
+      })
+
+	//Data Preparation
+    data = JSON.parse(jsonData);
+
+	//Set domain based on data parsed
+	x.domain(data.map(function(d) { return d.Time; }));
+    y.domain([0, d3.max(data, function(d) { return parseFloat(d.PM25); })]);
+    
+	//Initializing x axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+      .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", "-.55em")
+        .attr("transform", "rotate(-90)" );
+    
+	//initializing y axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+      .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("PM 2.5");
+    
+	//Value for bar chart
+    svg.selectAll("bar")
+        .data(data)
+      .enter().append("rect")
+        .attr("x", function(d) { return x(d.Time); })
+        .attr("width", x.rangeBand())
+        .attr("y", function(d) { return y(d.PM25); })
+        .attr("height", function(d) { return height - y(d.PM25); })
+		.style('fill', 'url(#grad)');
+
+    /*Using google Chart to present the data
+	// Create our data table out of JSON data loaded from server.
+    var data = new google.visualization.DataTable(jsonData);
+
+    //Instantiate and draw our chart, passing in some options.
+    var chart = new google.visualization.AreaChart(document.getElementById("EdimaxChart_" + popupID));
+    var options = {
+      'title': 'PM 2.5',
+      'titleTextStyle': {
+        'fontName': 'Times New Roman',
+        'fontSize': 14
+      },
+      'chartArea': {'top': 30, 'right': 15, 'bottom': 45, 'left': 45, 'width': '100%', 'height': '100%'},
+      'legend': 'none',
+      'crosshair': {trigger: "both"},
+      'animation': {
+        'duration': 500,
+        'easing': "out"
+      },
+      'hAxis': {'title': 'Hour'},
+      'vAxis': {
+        'title': 'PM 2.5',
+        'viewWindowMode': 'explicit',
+        'viewWindow': {'min': 0}
+      }
+    };
+    chart.draw(data, options);
+
+    //For testing purpose
+    //$("#jsonChart" + popupID).text(jsonData);*/
+  });
+}
+</script>
+
+</body>
+</html>
